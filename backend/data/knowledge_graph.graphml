@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d4" for="edge" attr.name="weight" attr.type="long" />
+  <key id="d3" for="edge" attr.name="relation" attr.type="string" />
+  <key id="d2" for="node" attr.name="community" attr.type="string" />
+  <key id="d1" for="node" attr.name="doc_id" attr.type="string" />
+  <key id="d0" for="node" attr.name="text" attr.type="string" />
+  <graph edgedefault="undirected">
+    <node id="chunk_acf15c9a8db9_0">
+      <data key="d0">東京都が管轄する領域は東京都区部（東京23区）、多摩地域（26市[注釈 2]と西多摩郡3町1村）および東京都島嶼部（大島、三宅、八丈、小笠原）の4支庁（2町7村）からなっている。沖ノ鳥島、南鳥島を含む</data>
+      <data key="d1">acf15c9a8db9</data>
+      <data key="d2">community_0</data>
+    </node>
+    <node id="chunk_e8ba1ee80a72_0">
+      <data key="d0">関東地方（かんとうちほう）は、日本の地域区分（七地方区分）の1つであり、本州の東部に位置している。
+
+その範囲について法律上の明確な定義はないが[注釈 1]、一般的には茨城県、栃木県、群馬県、埼玉県、</data>
+      <data key="d1">e8ba1ee80a72</data>
+      <data key="d2">community_1</data>
+    </node>
+    <node id="chunk_b8faef74d781_0">
+      <data key="d0">東アジアの島国であり、北海道・本州・四国・九州の主要4島をはじめとする1万4125の島嶼群から構成される。国土面積は世界61位から63位であり[注釈 5]、ほかに世界第6位から8位[注釈 6]の排他的</data>
+      <data key="d1">b8faef74d781</data>
+      <data key="d2">community_2</data>
+    </node>
+    <node id="chunk_62e4daefd01a_0">
+      <data key="d0">東京都（とうきょうと、（英: Tokyo Metropolis）は、日本の関東地方に位置する都[1][2]。都庁所在地は新宿区[1][注釈 1]、条例上の位置づけは新宿区西新宿二丁目[3]。詳細は、東</data>
+      <data key="d1">62e4daefd01a</data>
+      <data key="d2">community_3</data>
+    </node>
+    <node id="chunk_c63c37636728_0">
+      <data key="d0">東京都は区部（特別区23区）、多摩地域（26市と西多摩郡3町1村）および島嶼部（2町7村）からなる。
+
+地理的には東京都の主要部は、関東南西部にあって東西に細長い都域を有し、東部は東京湾に面する[2]</data>
+      <data key="d1">c63c37636728</data>
+      <data key="d2">community_4</data>
+    </node>
+    <node id="chunk_91495b051a35_0">
+      <data key="d0">京都市（きょうとし Ja-Kyoto-shi.oga 地元発音）は、京都府南部にある市。京都府の府庁所在地および人口が最多の市で、政令指定都市である。市域は11の行政区から成り、人口約143万人で、近</data>
+      <data key="d1">91495b051a35</data>
+      <data key="d2">community_5</data>
+    </node>
+    <edge source="chunk_62e4daefd01a_0" target="chunk_62e4daefd01a_0">
+      <data key="d3">shared_entity</data>
+      <data key="d4">33</data>
+    </edge>
+  </graph>
+</graphml>
