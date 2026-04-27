@@ -3,6 +3,12 @@
 ローカル環境で動作する、知識グラフベースのRAG（Retrieval-Augmented Generation）チャットアプリケーション。
 テキストからエンティティ（人物・組織・技術・概念など）を自動抽出し、知識グラフとして構築・可視化する。
 
+<img width="2000" height="875" alt="image" src="https://github.com/user-attachments/assets/70844c84-0341-4fe8-8381-38135eb592e9" />
+<img width="2000" height="873" alt="image" src="https://github.com/user-attachments/assets/6731fb1d-9180-448c-8c16-516255f79f61" />
+
+
+
+
 ## アーキテクチャ
 
 ```
