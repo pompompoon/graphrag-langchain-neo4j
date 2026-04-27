@@ -18,6 +18,8 @@ export default function GraphView() {
   const [graphData, setGraphData] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searching, setSearching] = useState(false);
   const stateRef = useRef({
     nodes: [], links: [], nodeMap: {},
     transform: { x: 0, y: 0, k: 1 },
@@ -26,13 +28,18 @@ export default function GraphView() {
     alpha: 1, animId: null, selectedId: null,
   });
 
-  /* データ取得 */
-  const fetchGraph = useCallback(async () => {
+  /* データ取得（クエリ付き） */
+  const fetchGraph = useCallback(async (query = '') => {
     try {
-      const res = await fetch(`${API_BASE}/graph/data`);
+      setSearching(!!query);
+      const url = query
+        ? `${API_BASE}/graph/data?query=${encodeURIComponent(query)}`
+        : `${API_BASE}/graph/data`;
+      const res = await fetch(url);
       if (res.ok) { setGraphData(await res.json()); setError(''); }
       else setError('グラフデータの取得に失敗しました');
     } catch (e) { setError(`接続エラー: ${e.message}`); }
+    finally { setSearching(false); }
   }, []);
 
   useEffect(() => { fetchGraph(); }, [fetchGraph]);
@@ -170,17 +177,22 @@ export default function GraphView() {
       ctx.translate(T.x, T.y);
       ctx.scale(T.k, T.k);
 
+      /* 検索中かどうか（非ハイライトノードを暗くする） */
+      const hasSearch = S.nodes.some(n => n.highlighted);
+
       /* エッジ描画 */
       S.links.forEach(l => {
         const s = l.sourceNode, t = l.targetNode;
         if (!s || !t) return;
+        const isHL = l.highlighted && hasSearch;
 
         /* ライン */
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(t.x, t.y);
-        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = isHL ? 'rgba(250,204,21,0.6)' :
+          (hasSearch ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.1)');
+        ctx.lineWidth = isHL ? 2 : 1.2;
         ctx.stroke();
 
         /* 矢印ヘッド */
@@ -222,9 +234,25 @@ export default function GraphView() {
         const r = nodeR(n);
         const isHovered = S.hoveredNode === n;
         const isSelected = S.selectedId === n.id;
+        const isHighlighted = !!n.highlighted;
+        const dimmed = hasSearch && !isHighlighted && !isHovered && !isSelected;
+
+        /* 検索ハイライト（脈動グロー） */
+        if (isHighlighted) {
+          const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 300);
+          const glowR = r + 25 * pulse;
+          const grd = ctx.createRadialGradient(n.x, n.y, r * 0.5, n.x, n.y, glowR);
+          grd.addColorStop(0, cfg.color + 'aa');
+          grd.addColorStop(0.5, cfg.color + '44');
+          grd.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(n.x, n.y, glowR, 0, Math.PI * 2);
+          ctx.fillStyle = grd;
+          ctx.fill();
+        }
 
         /* グロー（ホバー/選択時） */
-        if (isHovered || isSelected) {
+        if ((isHovered || isSelected) && !isHighlighted) {
           const grd = ctx.createRadialGradient(n.x, n.y, r, n.x, n.y, r + 20);
           grd.addColorStop(0, cfg.glow);
           grd.addColorStop(1, 'transparent');
@@ -235,6 +263,7 @@ export default function GraphView() {
         }
 
         /* 外側リング */
+        ctx.globalAlpha = dimmed ? 0.15 : 1;
         ctx.beginPath();
         ctx.arc(n.x, n.y, r + 4, 0, Math.PI * 2);
         ctx.fillStyle = cfg.color + '18';
@@ -252,8 +281,8 @@ export default function GraphView() {
         grad.addColorStop(1, cfg.color + '44');
         ctx.fillStyle = grad;
         ctx.fill();
-        ctx.strokeStyle = cfg.color + (isHovered || isSelected ? 'ff' : '99');
-        ctx.lineWidth = isHovered || isSelected ? 2.5 : 1;
+        ctx.strokeStyle = cfg.color + (isHighlighted ? 'ff' : (isHovered || isSelected ? 'ff' : '99'));
+        ctx.lineWidth = isHighlighted ? 3 : (isHovered || isSelected ? 2.5 : 1);
         ctx.stroke();
 
         /* アイコン */
@@ -264,10 +293,21 @@ export default function GraphView() {
 
         /* ラベル（ノード名） */
         ctx.font = `bold 13px "Meiryo", "Segoe UI", sans-serif`;
-        ctx.fillStyle = '#ffffffdd';
+        ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : '#ffffffdd';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText(n.label, n.x, n.y + r + 8);
+
+        /* スコアバッジ（検索ヒット時） */
+        if (isHighlighted && n.search_score > 0) {
+          ctx.font = 'bold 10px monospace';
+          ctx.fillStyle = '#facc15';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText((n.search_score * 100).toFixed(0) + '%', n.x, n.y - r - 6);
+        }
+
+        ctx.globalAlpha = 1;
       });
 
       ctx.restore();
@@ -339,7 +379,6 @@ export default function GraphView() {
       canvas.removeEventListener('click', onClick);
       canvas.removeEventListener('wheel', onWheel);
     };
-  
   }, [graphData]);
 
   /* --- Render --- */
@@ -382,10 +421,46 @@ export default function GraphView() {
           </span>
         </div>
 
-        {/* ボタン */}
-        <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 6 }}>
-          <button onClick={fetchGraph} style={css.btn}>更新</button>
+        {/* 検索バー + ボタン */}
+        <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 6, alignItems: 'center' }}>
+          <input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') fetchGraph(searchQuery);
+            }}
+            placeholder="ベクトル検索..."
+            style={{
+              width: 200, padding: '6px 12px', fontSize: 12,
+              background: 'rgba(255,255,255,0.06)', color: '#eee',
+              border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6,
+              outline: 'none',
+            }}
+          />
+          <button onClick={() => fetchGraph(searchQuery)}
+            style={{ ...css.btn, background: searching ? 'rgba(37,99,235,0.3)' : css.btn.background }}>
+            {searching ? '検索中...' : '🔍 検索'}
+          </button>
+          {searchQuery && (
+            <button onClick={() => { setSearchQuery(''); fetchGraph(''); }}
+              style={css.btn}>
+              ✕ クリア
+            </button>
+          )}
+          <button onClick={() => fetchGraph('')} style={css.btn}>更新</button>
         </div>
+
+        {/* 検索結果サマリー */}
+        {graphData.nodes.some(n => n.highlighted) && (
+          <div style={{
+            position: 'absolute', top: 50, right: 12,
+            padding: '6px 14px', background: 'rgba(250,204,21,0.1)',
+            border: '1px solid rgba(250,204,21,0.3)', borderRadius: 6,
+            color: '#facc15', fontSize: 12,
+          }}>
+            🔍 {graphData.nodes.filter(n => n.highlighted).length}件のエンティティがヒット
+          </div>
+        )}
 
         {/* 選択ノード詳細 */}
         {selectedNode && (
@@ -448,6 +523,35 @@ export default function GraphView() {
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* ベクトル検索ヒット */}
+        {graphData.nodes.filter(n => n.highlighted).length > 0 && (
+          <div style={{ marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 16 }}>
+            <div style={{ fontSize: 12, color: '#facc15', marginBottom: 8 }}>
+              🔍 ベクトル検索ヒット:
+            </div>
+            {graphData.nodes
+              .filter(n => n.highlighted)
+              .sort((a, b) => b.search_score - a.search_score)
+              .map((n, i) => (
+              <div key={i} style={{
+                fontSize: 12, color: '#ccc', marginBottom: 4,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span>
+                  <span style={{
+                    ...css.dot, width: 8, height: 8, marginRight: 6,
+                    background: (TYPE_CONFIG[n.type] || TYPE_CONFIG.concept).color,
+                  }} />
+                  {n.label}
+                </span>
+                <span style={{ fontSize: 10, color: '#666', fontFamily: 'monospace' }}>
+                  {(n.search_score * 100).toFixed(0)}%
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>

@@ -155,6 +155,9 @@ export default function App() {
             if (parsed.data.search_results) {
               meta.sources = parsed.data.search_results;
             }
+            if (parsed.data.matched_entities) {
+              meta.matched_entities = parsed.data.matched_entities;
+            }
           } catch (e) {
             // パースエラーは無視
           }
@@ -388,12 +391,27 @@ export default function App() {
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                     {msg.meta?.quality_score !== undefined && (
                       <div style={{ marginTop: 8, fontSize: 11, color: '#999',
-                        borderTop: '1px solid #f0f0f0', paddingTop: 6 }}>
-                        品質スコア: {msg.meta.quality_score.toFixed(2)}
-                        {msg.meta.retry_count > 1 &&
-                          ` (${msg.meta.retry_count - 1}回リトライ)`}
-                        {msg.meta.sources?.length > 0 &&
-                          ` | ソース: ${msg.meta.sources.length}件`}
+                        borderTop: '1px solid #f0f0f0', paddingTop: 6,
+                        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span>
+                          品質スコア: {msg.meta.quality_score.toFixed(2)}
+                          {msg.meta.retry_count > 1 &&
+                            ` (${msg.meta.retry_count - 1}回リトライ)`}
+                          {msg.meta.sources?.length > 0 &&
+                            ` | ソース: ${msg.meta.sources.length}件`}
+                        </span>
+                        {msg.meta.matched_entities?.length > 0 && (
+                          <button
+                            onClick={() => setView('graph')}
+                            style={{
+                              fontSize: 11, padding: '2px 8px', background: '#2563eb',
+                              color: '#fff', border: 'none', borderRadius: 4,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            グラフで表示 ({msg.meta.matched_entities.length}件)
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
