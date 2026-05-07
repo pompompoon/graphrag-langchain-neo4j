@@ -3,6 +3,7 @@
 ローカルLLMと知識グラフを組み合わせたRAG（Retrieval-Augmented Generation）チャットアプリケーション。
 テキストからエンティティを自動抽出し、知識グラフを構築・可視化・検索する。
 
+■WEB画面
 <img width="2000" height="875" alt="image" src="https://github.com/user-attachments/assets/62302da8-1066-4905-8c10-0e0ad9a35644" />
 <img width="2000" height="873" alt="image" src="https://github.com/user-attachments/assets/7eb78310-c9d8-46e0-9431-d6b02dcfcc2a" />
 
